@@ -1,0 +1,46 @@
+# title:   game title
+# author:  game developers, email, etc.
+# desc:    short description
+# site:    website link
+# license: MIT License (change this to your license of choice)
+# version: 0.1
+# script:  python
+import math
+
+class Car:
+ def __init__(self, x, y, speed, angle):
+  self.x = x
+  self.y = y
+  self.speed = speed
+  self.angle = angle
+  self.dir = angle
+  self.drift_factor = 0.7
+
+ def steer(self, turn_angle):
+  self.angle += turn_angle
+  self.dir += turn_angle
+
+ def update(self):
+  self.x += math.cos(self.dir) * self.speed
+  self.y += math.sin(self.dir) * self.speed
+
+ def drift(self):
+  self.speed *= self.drift_factor
+
+player=Car(50,50,1, 0)
+
+def TIC():
+ global player
+
+ if btn(0): player.speed-=0.05
+ if btn(1): player.speed+=0.05
+ if btn(2): player.steer(0.01)
+ if btn(3): player.steer(-0.01)
+ 
+ player.update()
+
+ cls(13)
+ spr(256,
+  int(player.x), int(player.y)
+ )
+ print(player.speed)
