@@ -7,6 +7,47 @@
 # script:  python
 import math
 
+class Cam:
+  def __init__(self):
+   self.focus_x=int(240/2)
+   self.focus_y=int(136/2)
+   self.obj_x=self.focus_x
+   self.obj_y=self.focus_y
+  def map(self, target_x, target_y):
+   self.focus_x=target_x # focus is in screen coordinates
+   self.focus_y=target_y
+   
+   x=Cam.compute_cam(self.focus_x,15,240-32)
+   y=Cam.compute_cam(self.focus_y,8,136-17)
+   
+   x_offset=Cam.compute_offset(120,1800,self.focus_x)
+   y_offset=Cam.compute_offset(64,1088-64,self.focus_y)
+
+   self.obj_x=Cam.compute_obj(self.focus_x,120)
+   self.obj_y=Cam.compute_obj(self.focus_y,64)
+   map(
+    int(x),int(y),
+    32,18,
+    int(-x_offset),int(-y_offset))
+   print(int(self.focus_y),0,16)
+  
+  def compute_obj(focus,map_center):
+   obj=-(focus-map_center)
+   return min(0,obj)
+  def compute_offset(lower,upper,cp):
+   if cp>lower and cp<upper:
+    return cp%8
+   return 0
+  def compute_cam(focus,map_center,map_upper):
+   v=focus/8-map_center
+   v=max(0,v)
+   return min(map_upper,v)
+   
+  def spr(self, index, x, y, color):
+   print(self.obj_y,0,24)
+   print(y,0,32)
+   spr(index,int(self.obj_x+x),int(self.obj_y+y),color)
+
 class Car:
  def __init__(self, x, y, speed, angle):
   self.x = x
@@ -19,28 +60,50 @@ class Car:
  def steer(self, turn_angle):
   self.angle += turn_angle
   self.dir += turn_angle
-
+  
+ def mv_x(self): return math.cos(self.dir)*self.speed
+ def mv_y(self): return math.sin(self.dir)*self.speed
  def update(self):
-  self.x += math.cos(self.dir) * self.speed
-  self.y += math.sin(self.dir) * self.speed
+  self.x+=self.mv_x()
+  self.y+=self.mv_y()
 
  def drift(self):
   self.speed *= self.drift_factor
+ 
+ def collides(self):
+  #self.dir+=math.pi
+  self.speed*=-0.5
+  self.update()
 
-player=Car(50,50,1, 0)
+player=Car(200,0,1,0)
+cam=Cam()
 
 def TIC():
+ logic()
+ draw()
+
+def draw():
  global player
+ cls(13)
+ cam.map(player.x, player.y)
+ cam.spr(256,player.x,player.y,1)
+
+def logic():
+ global player
+ max_speed=2
 
  if btn(0): player.speed-=0.05
  if btn(1): player.speed+=0.05
- if btn(2): player.steer(0.01)
- if btn(3): player.steer(-0.01)
+ if btn(2): player.steer(0.02)
+ if btn(3): player.steer(-0.02)
+ if btn(0): player.y+=1
+ if btn(1): player.y-=1
+ if btn(2): player.x+=1
+ if btn(3): player.x-=1
  
- player.update()
-
- cls(13)
- spr(256,
-  int(player.x), int(player.y)
- )
- print(player.speed)
+ if player.speed>max_speed:
+  player.speed=max_speed
+ if player.speed<-max_speed:
+  player.speed=-max_speed
+  
+ #player.update()
