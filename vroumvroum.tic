@@ -29,24 +29,21 @@ class Cam:
     int(x),int(y),
     32,18,
     int(-x_offset),int(-y_offset))
-   print(int(self.focus_y),0,16)
   
   def compute_obj(focus,map_center):
    obj=-(focus-map_center)
    return min(0,obj)
   def compute_offset(lower,upper,cp):
    if cp>lower and cp<upper:
-    return cp%8
+    return int(cp)%8
    return 0
   def compute_cam(focus,map_center,map_upper):
    v=focus/8-map_center
    v=max(0,v)
    return min(map_upper,v)
    
-  def spr(self, index, x, y, color):
-   print(self.obj_y,0,24)
-   print(y,0,32)
-   spr(index,int(self.obj_x+x),int(self.obj_y+y),color)
+  def spr(self, index, x, y, color, rotation):
+   spr(index,int(self.obj_x+x),int(self.obj_y+y),color,1,0,rotation)
 
 class Car:
  def __init__(self, x, y, speed, angle):
@@ -69,6 +66,22 @@ class Car:
 
  def drift(self):
   self.speed *= self.drift_factor
+ angle_sprite={
+  0:(256,0),
+  1:(257,0),
+  2:(256,1),
+  3:(257,1),
+  4:(256,2),
+  5:(257,2),
+  6:(256,3),
+  7:(257,3)
+ }
+ def def_sprite(self):
+  index=math.degrees(self.dir)
+  index+=(360/45) # shift
+  index=int(index)%360
+  index/=45
+  return self.angle_sprite[int(index)]
  
  def collides(self):
   #self.dir+=math.pi
@@ -85,8 +98,10 @@ def TIC():
 def draw():
  global player
  cls(13)
+ p_spr=player.def_sprite()
  cam.map(player.x, player.y)
- cam.spr(256,player.x,player.y,1)
+ cam.spr(p_spr[0],player.x,player.y,1,p_spr[1])
+ print(player.dir)
 
 def logic():
  global player
@@ -96,14 +111,10 @@ def logic():
  if btn(1): player.speed+=0.05
  if btn(2): player.steer(0.02)
  if btn(3): player.steer(-0.02)
- if btn(0): player.y+=1
- if btn(1): player.y-=1
- if btn(2): player.x+=1
- if btn(3): player.x-=1
- 
+
  if player.speed>max_speed:
   player.speed=max_speed
  if player.speed<-max_speed:
   player.speed=-max_speed
   
- #player.update()
+ player.update()
